@@ -1,0 +1,52 @@
+# More examples of Codefresh YAML can be found at
+# https://codefresh.io/docs/docs/yaml-examples/examples/
+
+version: "1.0"
+# Stages can help you organize your steps in stages
+stages:
+  - "clone"
+  - "build"
+  - "deploy"
+
+steps:
+  clone:
+    title: "Cloning repository"
+    type: "git-clone"
+    repo: "admingagan/devops-codefresh"
+    # CF_BRANCH value is auto set when pipeline is triggered
+    # Learn more at codefresh.io/docs/docs/codefresh-yaml/variables/
+    revision: "${{CF_BRANCH}}"
+    git: "github"
+    stage: "clone"
+
+  test:
+    title: "Running terraform"
+    type: "freestyle" # Run any command
+    image: "centos:7" # The image in which command will be executed
+    working_directory: "${{clone}}" # Running command where code cloned
+    commands:
+      - "ls"
+      - yum install -y wget unzip git
+      - "rm -rf terraf*" 
+      - wget https://releases.hashicorp.com/terraform/1.0.11/terraform_1.0.11_linux_amd64.zip
+      - unzip terraform_1.0.11_linux_amd64.zip
+      - pwd
+      - "./terraform init"
+      - "./terraform apply -state ../terraform.tfstate -auto-approve"
+      - ls -l
+    stage: "build"
+  deploy:
+    title: "Running Ansible Playbook"
+    type: "freestyle" # Run any command
+    image: "centos:7" # The image in which command will be executed
+    working_directory: "${{clone}}" # Running command where code cloned
+    commands:
+      - "ls"
+      - yum install epel-release -y
+      - yum install -y ansible
+      - cat test.pem
+      - chmod 400 test.pem
+      - sleep 30
+      - sed -i 's/#host_key_checking = False/host_key_checking = False/g' /etc/ansible/ansible.cfg
+      - ansible-playbook -u ec2-user -b --become-method sudo --private-key ./test.pem -i /codefresh/volume/inventory web.yaml
+      - echo "Configuration done"
