@@ -12,11 +12,11 @@ steps:
   clone:
     title: "Cloning repository"
     type: "git-clone"
-    repo: "admingagan/devops-codefresh"
+    repo: "premprad/devops-codefresh"
     # CF_BRANCH value is auto set when pipeline is triggered
     # Learn more at codefresh.io/docs/docs/codefresh-yaml/variables/
     revision: "${{CF_BRANCH}}"
-    git: "github"
+    git: "das_github"
     stage: "clone"
 
   test:
